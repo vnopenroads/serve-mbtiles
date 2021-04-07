@@ -2,18 +2,31 @@ require("dotenv").config();
 const express = require("express");
 const MBTiles = require("@mapbox/mbtiles");
 const cors = require("cors");
+const fs = require("fs");
 
 const app = express();
 const port = 3000;
 const mbtilesPath = process.env.MBTILES_PATH;
+let mbtiles;
 
-const mbtiles = new MBTiles(`${mbtilesPath}?mode=ro`, function (err, mbtiles) {
-  console.log(err, mbtiles); // mbtiles object with methods listed below
-  if (err) {
-    console.log("Please check your mbtiles file. Exiting...");
-    process.exit(1);
-  }
+function loadMbtilesFile() {
+  mbtiles = new MBTiles(`${mbtilesPath}?mode=ro`, function (err, mbtiles) {
+    console.log(err, mbtiles); // mbtiles object with methods listed below
+    if (err) {
+      console.log("Please check your mbtiles file. Exiting...");
+      process.exit(1);
+    }
+  });
+}
+
+fs.watchFile(mbtilesPath, (curr, prev) => {
+  console.log(`${mbtilesPath} file Changed`);
+
+  loadMbtilesFile();
 });
+
+loadMbtilesFile();
+
 
 app.use(cors());
 
